@@ -1,0 +1,118 @@
+#!/usr/bin/bash
+
+# VIOLENCE install script
+
+SCRIPT_NAME="install"
+BINARY_CLIENT="ve_client"
+IS_RELEASE="false"
+BUILD_TYPE="Debug"
+
+### CHECK ARGS
+
+if [[ "$1" == "--help" || "$1" == "-h" ]]
+then
+    printf "USAGE: ./$SCRIPT_NAME [DIR] [RELEASE]\n\tDIR\t(optional) project root directory, default './'\n\tRELEASE\t(optional) build for release ('true' or 'false'), default 'false'\n"
+    exit 0
+fi
+
+if [[ $# > 0 && ! -d "$1" ]]
+then
+    printf "$SCRIPT_NAME: cannot access '$1': No such directory\n"
+    exit 1
+fi
+
+if [[ $# > 0 ]]
+then
+    cd "$1"
+fi
+
+if [[ $# > 1 && "$2" == "true" ]]
+then
+    IS_RELEASE="true"
+    BUILD_TYPE="Release"
+fi
+
+### CHECK FILES
+
+if [[ ! -f "conanfile.txt" ]]
+then
+    printf "$SCRIPT_NAME: missing 'conanfile.txt'\n"
+    exit 1
+fi
+
+if [[ ! -f "CMakeLists.txt" ]]
+then
+    printf "$SCRIPT_NAME: missing 'CMakeLists.txt'\n"
+    exit 1
+fi
+
+### CREATE BUILD DIR
+
+mkdir -p build
+cd build
+
+### SETUP CONAN PROFILE
+
+conan profile update settings.compiler.libcxx=libstdc++11 default
+
+if [[ $? != 0 ]]
+then
+    printf "$SCRIPT_NAME:\33[0;31m conan update profile fail ❌\33[0m\n"
+    exit 1
+fi
+printf "$SCRIPT_NAME:\33[00;32m conan profile: ✔\33[0m\n"
+
+### CONAN INSTALL
+
+conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan > /dev/null 2>&1
+
+CONAN_INSTALL=$(conan install .. --build missing 2>&1)
+
+if [[ $? != 0 ]]
+then
+    echo "$CONAN_INSTALL"
+    printf "$SCRIPT_NAME:\33[0;31m conan install fail ❌\33[0m\n"
+    exit 1
+fi
+printf "$SCRIPT_NAME:\33[00;32m conan install: ✔\33[0m\n"
+
+### CMAKE CONFIGURE
+
+cmake .. -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+
+if [[ $? != 0 ]]
+then
+    printf "$SCRIPT_NAME:\33[0;31m cmake configure fail ❌\33[0m\n"
+    exit 1
+fi
+printf "$SCRIPT_NAME:\33[00;32m cmake configure: ✔\33[0m\n"
+
+### CMAKE BUILD
+
+cmake --build . --parallel 4 --config $BUILD_TYPE
+
+if [[ $? != 0 ]]
+then
+    printf "$SCRIPT_NAME:\33[0;31m cmake build fail ❌\33[0m\n"
+else
+    printf "$SCRIPT_NAME:\33[00;32m cmake build ($BUILD_TYPE): ✔\33[0m\n"
+fi
+
+
+### PROCESS RELEASE
+
+if [[ "$IS_RELEASE" == "true" ]]
+then
+    mkdir -p ../bin
+    cp -ru bin/assets ../bin
+
+    if [[ -f "bin/$BINARY_CLIENT" ]]
+    then
+        cp -u "bin/$BINARY_CLIENT" ../bin
+    fi
+    printf "$SCRIPT_NAME:\33[00;32m bin release: ✔\33[0m\n"
+    cd ..
+    rm -rf ./build
+fi
+
+exit 0

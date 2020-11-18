@@ -1,0 +1,18 @@
+[requires]
+sfml/2.5.1@bincrafters/stable
+
+[options]
+libalsa:shared=False
+sfml:shared=False
+sfml:graphics=True
+sfml:window=True
+sfml:audio=True
+sfml:network=True
+
+[generators]
+cmake
+
+[imports]
+bin, *.dll -> ./bin
+lib, *.dylib* -> ./bin
+lib, *.so* -> ./bin

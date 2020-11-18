@@ -1,0 +1,60 @@
+# CMake
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles
+Makefile
+build/
+bin/
+
+# Visual studio
+.vscode/
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+r-type_server
+r-type_client
+
+# Database
+*.db
+
+# Custom
+.old
+.idea
+gimp/
+*.mp3
+TODO.txt
+server_fredo
